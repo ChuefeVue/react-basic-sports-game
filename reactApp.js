@@ -1,84 +1,95 @@
+//After Davey Strus's Solution Video
 class Team extends React.Component {
-
-    constructor(props) {
-        super(props)
-        this.state = {
-            teamName: props.name,
-            teamLogo: props.logo,
-            teamScore: 0,
-            teamShotTaken: 0,
-            teamShotPercentage: teamScore / teamShotTaken,
-        }
+  //Set up constructor
+  constructor(props) {
+    super(props);
+    //set States
+    this.state = {
+      shots: 0,
+      score: 0,
+    };
+    this.backboard = new Audio("./assets/sound/BackBoard.wav");
+    this.swish = new Audio("./assets/sound/Swish.wav");
+  }
+  //create a method for shooting
+  shotHandler = () => {
+    let score = this.state.score;
+    //set up audio play
+    //50% chance of making or missing
+    this.backboard.play();
+    if (Math.random() > 0.5) {
+      //the let score will increment by 1 if Math.random() is greater than 0.5
+      score += 1;
+      setTimeout(() => {
+        this.swish.play();
+      }, 100);
     }
-
-    shoot = (event) => {
-        const shotChance = (Math.floor(Math.random() * 100) + 1)
-        //If shotChance is between 15 and 85 team will score a point and increment Score and shotTaken by 1. 
-        if (shotChance < 15 && shotChance < 85) {
-            this.setState((state, props) => ({
-                teamScore: state.teamScore += 1,
-                teamShotTaken: state.teamShotTaken += 1,
-            }))
-        }
-        //We have a 30% chance of missing from both sides due to 15 and below with 85 and above being missing zones, if Shot misses: only shotTaken increments by 1        
-        else {
-            this.setState((state, props) => ({
-                teamShotTaken: state.teamShotTaken += 1
-            }))
-        }
+    //otherwise we will set state as it is
+    this.setState((state, props) => ({
+      //shots will always increment by 1 regardless if the shot made it or not
+      shots: state.shots + 1,
+      //score will set it's state to the let score state it is at, if the if statement prior is not activated then nothing changes
+      score,
+    }));
+  };
+  render() {
+    //set if statement in render that won't activate until shots does not = 0 which is equivalent to false and creates a div in the function
+    let shotPercentageDiv;
+    if (this.state.shots) {
+      const shotPercentage = Math.round(
+        (this.state.score / this.state.shots) * 100
+      );
+      shotPercentageDiv = <div>Shooting %: {shotPercentage}</div>;
     }
-    revealShotPercent = (event) => {
-        if (this.state.teamShotTaken === 0) {
-            return
-        }
-        else {
-            return this.state.teamShotPercentage
-        }
-    }
-    render() {
-        return (
-            <div>
-                <h2>{this.state.teamName}</h2>
-                <img src={this.state.teamLogo} alt="Team Logo" />
-                {this.state.teamScore}
-                {this.state.teamShotTaken}
-                {this.revealShotPercent}
-            </div>
-        )
-    }
-}
-class Game extends React.Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-            venueName: this.props.venue,
-        }
-    }
-    render() {
-        return (
-            <div>
-                <Team />
-            </div>
-        )
-    }
-}
-// function App(props) {
-//     return (
-//         <div>
-//             <h1 id="venue">Welcome to the Basic Sports Game!</h1>
-//             <Game />
-//         </div>
-//     )
-// }
-function App(props) {
     return (
-        <div>
-            <h1 id="venue">Welcome to the Basic Sports Game!</h1>
-            <Team />
+      // organizing placements for the ui to take place, the team name, logo, state statistics and the shoot button
+      <div className="Team">
+        <h2>{this.props.name}</h2>
+
+        <div className="logoImg">
+          <img src={this.props.logo} alt={this.props.name} />
         </div>
-    )
+
+        <div>Shots: {this.state.shots}</div>
+
+        <div>Score: {this.state.score}</div>
+
+        {shotPercentageDiv}
+
+        <button onClick={this.shotHandler}>Shoot</button>
+      </div>
+    );
+  }
 }
-ReactDOM.render(
-    <App />,
-    document.getElementById('root')
-)
+function Game(props) {
+  return (
+    <div className="Game">
+      <h2 className="venue">Welcome to {props.venue}!</h2>
+      <div className="stats">
+        <Team name={props.homeTeam.name} logo={props.homeTeam.logo} />
+        <div className="versus">
+          <h1>VS</h1>
+        </div>
+        <Team name={props.visitingTeam.name} logo={props.visitingTeam.logo} />
+      </div>
+    </div>
+  );
+}
+
+function App(props) {
+  const OwlTeam = {
+    name: "Owl Gazers",
+    logo: "./assets/images/Owl.png",
+  };
+  const DuckTeam = {
+    name: "Quacken Ducks",
+    logo: "./assets/images/Duck.png",
+  };
+
+  return (
+    <div className="App">
+      <Game venue="Tall Trees" homeTeam={OwlTeam} visitingTeam={DuckTeam} />
+    </div>
+  );
+}
+ReactDOM.render(<App />, document.getElementById("root"));
